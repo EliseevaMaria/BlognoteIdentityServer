@@ -162,7 +162,7 @@ namespace BlognoteIdentityServer.Controllers
                 return BadRequest(ModelState);
             }
 
-            var user = new AppUser { UserName = model.Email, Name = model.Name, Email = model.Email };
+            var user = new AppUser { UserName = model.Name, Name = model.Name, Email = model.Email };
 
             var result = await _userManager.CreateAsync(user, model.Password);
 
