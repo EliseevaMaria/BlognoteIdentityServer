@@ -5,7 +5,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace BlognoteIdentityServer.Models
 {
-    public class AppIdentityDbContext : IdentityDbContext
+    public class AppIdentityDbContext : IdentityDbContext<AppUser>
     {
         public AppIdentityDbContext(DbContextOptions<AppIdentityDbContext> options) : base(options)
         {

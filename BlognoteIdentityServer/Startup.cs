@@ -1,8 +1,7 @@
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+using System.Net;
 using BlognoteIdentityServer.Models;
+using BlognoteIdentityServer.Services;
 using IdentityServer4.Services;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Diagnostics;
@@ -14,7 +13,6 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
 
 namespace BlognoteIdentityServer
 {
@@ -30,37 +28,37 @@ namespace BlognoteIdentityServer
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddControllersWithViews();
-            services.AddDbContext<AppIdentityDbContext>(options => options.UseSqlServer(Configuration.GetConnectionString("Default")));
+            services.AddDbContext<AppIdentityDbContext>(options => 
+                options.UseSqlServer(Configuration.GetConnectionString("Default")));
 
             services.AddIdentity<AppUser, IdentityRole>()
-              .AddEntityFrameworkStores<AppIdentityDbContext>()
-              .AddDefaultTokenProviders();
+                .AddEntityFrameworkStores<AppIdentityDbContext>()
+                .AddDefaultTokenProviders();
 
-            services.AddIdentityServer().AddDeveloperSigningCredential()
-               // this adds the operational data from DB (codes, tokens, consents)
-               .AddOperationalStore(options =>
-               {
-                   options.ConfigureDbContext = builder => builder.UseSqlServer(Configuration.GetConnectionString("Default"));
-                   // this enables automatic token cleanup. this is optional.
-                   options.EnableTokenCleanup = true;
-                   options.TokenCleanupInterval = 30; // interval in seconds
-               })
-               .AddInMemoryIdentityResources(Config.GetIdentityResources())
-               .AddInMemoryApiResources(Config.GetApiResources())
-               .AddInMemoryClients(Config.GetClients())
-               .AddAspNetIdentity<AppUser>();
+            services.AddIdentityServer()
+                .AddDeveloperSigningCredential()
+                .AddOperationalStore(options =>
+                {
+                    options.ConfigureDbContext = builder => 
+                        builder.UseSqlServer(Configuration.GetConnectionString("Default"));
+                    options.EnableTokenCleanup = true;
+                    options.TokenCleanupInterval = 30;
+                })
+                .AddInMemoryIdentityResources(Config.GetIdentityResources())
+                .AddInMemoryApiResources(Config.GetApiResources())
+                .AddInMemoryClients(Config.GetClients())
+                .AddAspNetIdentity<AppUser>();
 
-            //services.AddTransient<IProfileService, IdentityClaimsProfileService>();
+            services.AddTransient<IProfileService, IdentityClaimsProfileService>();
 
-            //services.AddCors(options => options.AddPolicy("AllowAll", p => p.AllowAnyOrigin()
-            //   .AllowAnyMethod()
-            //   .AllowAnyHeader()));
+            services.AddCors(options => options.AddPolicy("AllowAll", p => p.AllowAnyOrigin()
+               .AllowAnyMethod()
+               .AllowAnyHeader()));
 
-            //services.AddMvc(options =>
-            //{
-            //    options.EnableEndpointRouting = false;
-            //}).SetCompatibilityVersion(CompatibilityVersion.Latest);
+            services.AddMvc(options =>
+            {
+                options.EnableEndpointRouting = false;
+            }).SetCompatibilityVersion(CompatibilityVersion.Latest);
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -70,27 +68,34 @@ namespace BlognoteIdentityServer
             {
                 app.UseDeveloperExceptionPage();
             }
-            else
+
+            app.UseExceptionHandler(builder =>
             {
-                app.UseExceptionHandler("/Home/Error");
-                // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
-                app.UseHsts();
-            }
-            app.UseHttpsRedirection();
-            app.UseStaticFiles();
+                builder.Run(async context =>
+                {
+                    context.Response.StatusCode = (int)HttpStatusCode.InternalServerError;
+                    context.Response.Headers.Add("Access-Control-Allow-Origin", "*");
 
-            app.UseRouting();
-
-            app.UseAuthorization();
-            app.UseIdentityServer();
-
-            app.UseEndpoints(endpoints =>
-            {
-                endpoints.MapControllerRoute(
-                    name: "default",
-                    pattern: "{controller=Home}/{action=Index}/{id?}");
+                    var error = context.Features.Get<IExceptionHandlerFeature>();
+                    if (error != null)
+                    {
+                        context.Response.Headers.Add("Application-Error", error.Error.Message);
+                        context.Response.Headers.Add("access-control-expose-headers", "Application-Error");
+                        await context.Response.WriteAsync(error.Error.Message).ConfigureAwait(false);
+                    }
+                });
             });
 
+            app.UseStaticFiles();
+            app.UseCors("AllowAll");
+            app.UseIdentityServer();
+
+            app.UseMvc(routes =>
+            {
+                routes.MapRoute(
+                    name: "default",
+                    template: "{controller=Home}/{action=Index}/{id?}");
+            });
         }
     }
 }

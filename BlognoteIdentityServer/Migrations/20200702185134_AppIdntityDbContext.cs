@@ -3,7 +3,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 namespace BlognoteIdentityServer.Migrations
 {
-    public partial class initial : Migration
+    public partial class AppIdntityDbContext : Migration
     {
         protected override void Up(MigrationBuilder migrationBuilder)
         {
@@ -39,7 +39,8 @@ namespace BlognoteIdentityServer.Migrations
                     TwoFactorEnabled = table.Column<bool>(nullable: false),
                     LockoutEnd = table.Column<DateTimeOffset>(nullable: true),
                     LockoutEnabled = table.Column<bool>(nullable: false),
-                    AccessFailedCount = table.Column<int>(nullable: false)
+                    AccessFailedCount = table.Column<int>(nullable: false),
+                    Name = table.Column<string>(nullable: true)
                 },
                 constraints: table =>
                 {
@@ -155,7 +156,7 @@ namespace BlognoteIdentityServer.Migrations
             migrationBuilder.InsertData(
                 table: "AspNetRoles",
                 columns: new[] { "Id", "ConcurrencyStamp", "Name", "NormalizedName" },
-                values: new object[] { "bb4859a0-0657-4db7-abc2-874f3959bb69", "967fe3f2-71e4-449c-91c9-69e4b96519ff", "consumer", "CONSUMER" });
+                values: new object[] { "488b2b0f-5c4d-4323-965c-07a1b0cd14bd", "a8d00ded-6275-4393-a689-595bb0f1eab3", "consumer", "CONSUMER" });
 
             migrationBuilder.CreateIndex(
                 name: "IX_AspNetRoleClaims_RoleId",
