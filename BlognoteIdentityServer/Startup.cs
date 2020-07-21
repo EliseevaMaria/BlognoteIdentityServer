@@ -35,7 +35,10 @@ namespace BlognoteIdentityServer
                 .AddEntityFrameworkStores<AppIdentityDbContext>()
                 .AddDefaultTokenProviders();
 
-            services.AddIdentityServer()
+            services.AddIdentityServer(options =>
+                {
+                    options.Authentication.CookieAuthenticationScheme = IdentityServer4.IdentityServerConstants.DefaultCookieAuthenticationScheme;
+                })
                 .AddDeveloperSigningCredential()
                 .AddOperationalStore(options =>
                 {
