@@ -2,6 +2,7 @@ using System;
 using System.Net;
 using BlognoteIdentityServer.Models;
 using BlognoteIdentityServer.Services;
+using IdentityServer4;
 using IdentityServer4.Services;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Diagnostics;
@@ -37,7 +38,7 @@ namespace BlognoteIdentityServer
 
             services.AddIdentityServer(options =>
                 {
-                    options.Authentication.CookieAuthenticationScheme = IdentityServer4.IdentityServerConstants.DefaultCookieAuthenticationScheme;
+                    options.Authentication.CookieAuthenticationScheme = IdentityServerConstants.DefaultCookieAuthenticationScheme;
                 })
                 .AddDeveloperSigningCredential()
                 .AddOperationalStore(options =>

@@ -12,6 +12,7 @@ using Microsoft.AspNetCore.Identity;
 using BlognoteIdentityServer.Models;
 using BlognoteIdentityServer.Extensions;
 using BlognoteIdentityServer.Constants;
+using IdentityServer4;
 
 namespace BlognoteIdentityServer.Controllers
 {
@@ -179,6 +180,7 @@ namespace BlognoteIdentityServer.Controllers
         [HttpGet]
         public async Task<IActionResult> Logout(string logoutId)
         {
+            await HttpContext.SignOutAsync(IdentityServerConstants.DefaultCookieAuthenticationScheme);
             await _signInManager.SignOutAsync();
             var context = await _interaction.GetLogoutContextAsync(logoutId);
             return Redirect(context.PostLogoutRedirectUri);
